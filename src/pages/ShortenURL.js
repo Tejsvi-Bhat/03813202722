@@ -1,72 +1,96 @@
-// ShortenURL.js
+// src/pages/ShortenURL.js
+
 import React, { useState } from 'react';
-import { logEvent } from '../utils/logger';
+import { logEvent } from '../utils/logger'; // make sure path is correct
 
-const ShortenPage = () => {
-  const [urls, setUrls] = useState(
-    Array(5).fill({ longUrl: '', shortcode: '', validity: '' })
-  );
+const ShortenURL = () => {
+  const [urlData, setUrlData] = useState([
+    { longUrl: '', shortcode: '', validity: 30 },
+    { longUrl: '', shortcode: '', validity: 30 },
+    { longUrl: '', shortcode: '', validity: 30 },
+    { longUrl: '', shortcode: '', validity: 30 },
+    { longUrl: '', shortcode: '', validity: 30 },
+  ]);
 
-  const handleChange = (index, field, value) => {
-    setUrls((prev) =>
-      prev.map((item, i) =>
-        i === index ? { ...item, [field]: value } : item
-      )
-    );
+  const [shortenedUrls, setShortenedUrls] = useState([]);
+
+  const handleInputChange = (index, field, value) => {
+    const updatedData = [...urlData];
+    updatedData[index][field] = value;
+    setUrlData(updatedData);
+  };
+
+  const generateRandomShortcode = () => {
+    return Math.random().toString(36).substring(2, 8);
   };
 
   const handleShorten = (index) => {
-    const { longUrl, shortcode, validity } = urls[index];
-
-    if (!longUrl.trim()) {
-      alert("Please enter a URL.");
-      logEvent("frontend", "warn", "component", `Missing long URL at index ${index}`);
+    const { longUrl, shortcode, validity } = urlData[index];
+    if (!longUrl) {
+      alert("Please enter a valid URL.");
       return;
     }
 
-    logEvent("frontend", "info", "component", `Shorten clicked at index ${index}`);
-    console.log("Ready to send:", { longUrl, shortcode, validity });
+    const code = shortcode || generateRandomShortcode();
+    const expiry = new Date(Date.now() + validity * 60 * 1000); // in ms
+
+    const shortURL = `http://localhost:3000/${code}`;
+
+    const entry = {
+      longUrl,
+      shortcode: code,
+      validity,
+      expiry: expiry.toISOString(),
+      shortURL,
+    };
+
+    setShortenedUrls([...shortenedUrls, entry]);
+
+    logEvent("frontend", "info", "component", `Shortened URL created: ${shortURL}`);
   };
 
   return (
-    <div style={{ padding: '2rem', fontFamily: 'Arial, sans-serif' }}>
-      <h2>URL Shortener</h2>
-      {urls.map((entry, idx) => (
-        <div
-          key={idx}
-          style={{
-            marginBottom: '1rem',
-            padding: '1rem',
-            border: '1px solid #ddd',
-            borderRadius: '6px',
-          }}
-        >
+    <div style={{ padding: "20px" }}>
+      <h2>Shorten Your URLs (Max 5)</h2>
+      {urlData.map((row, idx) => (
+        <div key={idx} style={{ marginBottom: "10px" }}>
           <input
             type="text"
             placeholder="Enter long URL"
-            value={entry.longUrl}
-            onChange={(e) => handleChange(idx, 'longUrl', e.target.value)}
-            style={{ marginRight: 10, width: '30%' }}
+            value={row.longUrl}
+            onChange={(e) => handleInputChange(idx, 'longUrl', e.target.value)}
+            style={{ width: "40%", marginRight: "5px" }}
           />
           <input
             type="text"
             placeholder="Custom shortcode (optional)"
-            value={entry.shortcode}
-            onChange={(e) => handleChange(idx, 'shortcode', e.target.value)}
-            style={{ marginRight: 10, width: '20%' }}
+            value={row.shortcode}
+            onChange={(e) => handleInputChange(idx, 'shortcode', e.target.value)}
+            style={{ width: "20%", marginRight: "5px" }}
           />
           <input
             type="number"
-            placeholder="Validity (min)"
-            value={entry.validity}
-            onChange={(e) => handleChange(idx, 'validity', e.target.value)}
-            style={{ marginRight: 10, width: '15%' }}
+            placeholder="Validity in mins"
+            value={row.validity}
+            onChange={(e) => handleInputChange(idx, 'validity', e.target.value)}
+            style={{ width: "10%", marginRight: "5px" }}
           />
           <button onClick={() => handleShorten(idx)}>Shorten</button>
         </div>
       ))}
+
+      <h3>Shortened URLs</h3>
+      <ul>
+        {shortenedUrls.map((url, idx) => (
+          <li key={idx}>
+            <strong>{url.shortURL}</strong> → {url.longUrl}  
+            <br />
+            Expires at: {url.expiry}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 };
 
-export default ShortenPage;
+export default ShortenURL;
