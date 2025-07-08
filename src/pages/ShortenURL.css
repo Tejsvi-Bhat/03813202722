@@ -1,55 +1,50 @@
-
-.container {
-    max-width: 850px;
-    margin: 50px auto;
+.shorten-wrapper {
+    max-width: 800px;
+    margin: 40px auto;
     padding: 20px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9f9f9;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   }
   
-  h2 {
-    text-align: center;
-    color: black;
-    margin-bottom: 30px;
-  }
-  
-  .row {
+  .input-row {
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
     gap: 10px;
-    margin-bottom: 20px;
-    padding: 16px;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
-    background-color: #fafafa;
-    box-shadow: 1px 1px 6px rgba(0, 0, 0, 0.04);
+    margin-bottom: 16px;
   }
   
-  input {
+  .input-row input {
     padding: 10px;
-    border: 1px solid #cccccc;
-    border-radius: 6px;
+    font-size: 14px;
     flex: 1;
-    min-width: 180px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    min-width: 160px;
   }
   
-  button {
+  .input-row button {
     padding: 10px 16px;
-    border: none;
-    background-color:#007bff;
+    font-size: 14px;
+    background-color: #007bff;
     color: white;
+    border: none;
     border-radius: 6px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
+    transition: background 0.2s ease;
   }
   
-  button:hover {
-    background-color: #005dc1;
+  .input-row button:hover {
+    background-color: #0056b3;
   }
   
-  .short-url {
-    margin-top: 8px;
-    font-size: 14px;
-    color: #333;
+  ul {
+    padding-left: 20px;
+  }
+  
+  li {
+    margin-bottom: 12px;
+    line-height: 1.5;
   }
   

@@ -1,94 +1,114 @@
 // src/pages/ShortenURL.js
-
-import React, { useState } from 'react';
-import { logEvent } from '../utils/logger'; // make sure path is correct
+import './ShortenURL.css';
+import React, { useState, useEffect } from 'react';
+import { logEvent } from '../utils/logger';
 
 const ShortenURL = () => {
-  const [urlData, setUrlData] = useState([
-    { longUrl: '', shortcode: '', validity: 30 },
-    { longUrl: '', shortcode: '', validity: 30 },
-    { longUrl: '', shortcode: '', validity: 30 },
-    { longUrl: '', shortcode: '', validity: 30 },
-    { longUrl: '', shortcode: '', validity: 30 },
-  ]);
+  const [urlInputs, setUrlInputs] = useState(
+    Array(5).fill({ longUrl: '', shortcode: '', validity: 30 })
+  );
+  const [shortenedList, setShortenedList] = useState([]);
 
-  const [shortenedUrls, setShortenedUrls] = useState([]);
+  useEffect(() => {
+    const saved = localStorage.getItem('shortenedUrls');
+    if (saved) setShortenedList(JSON.parse(saved));
+  }, []);
 
-  const handleInputChange = (index, field, value) => {
-    const updatedData = [...urlData];
-    updatedData[index][field] = value;
-    setUrlData(updatedData);
+  useEffect(() => {
+    localStorage.setItem('shortenedUrls', JSON.stringify(shortenedList));
+  }, [shortenedList]);
+
+  const handleChange = (index, field, value) => {
+    const updated = [...urlInputs];
+    updated[index] = { ...updated[index], [field]: value };
+    setUrlInputs(updated);
   };
 
-  const generateRandomShortcode = () => {
-    return Math.random().toString(36).substring(2, 8);
+  const getRandomCode = () => Math.random().toString(36).substring(2, 8);
+  const isValidUrl = (url) => {
+    try {
+      new URL(url);
+      return true;
+    } catch {
+      return false;
+    }
   };
+  const isValidCode = (code) => /^[a-zA-Z0-9]{1,10}$/.test(code);
 
-  const handleShorten = (index) => {
-    const { longUrl, shortcode, validity } = urlData[index];
-    if (!longUrl) {
+  const shortenURL = (index) => {
+    const { longUrl, shortcode, validity } = urlInputs[index];
+    if (!isValidUrl(longUrl)) {
       alert("Please enter a valid URL.");
       return;
     }
+    if (shortcode && !isValidCode(shortcode)) {
+      alert("Shortcode must be alphanumeric (max 10 chars).");
+      return;
+    }
+    const mins = parseInt(validity);
+    if (isNaN(mins) || mins <= 0) {
+      alert("Validity must be a positive number.");
+      return;
+    }
 
-    const code = shortcode || generateRandomShortcode();
-    const expiry = new Date(Date.now() + validity * 60 * 1000); // in ms
+    const code = shortcode || getRandomCode();
+    const expiryTime = new Date(Date.now() + mins * 60 * 1000);
+    const shortLink = `http://localhost:3000/${code}`;
 
-    const shortURL = `http://localhost:3000/${code}`;
-
-    const entry = {
+    const newEntry = {
       longUrl,
       shortcode: code,
-      validity,
-      expiry: expiry.toISOString(),
-      shortURL,
+      validity: mins,
+      expiry: expiryTime.toISOString(),
+      shortURL: shortLink,
     };
 
-    setShortenedUrls([...shortenedUrls, entry]);
-
-    logEvent("frontend", "info", "component", `Shortened URL created: ${shortURL}`);
+    setShortenedList([...shortenedList, newEntry]);
+    logEvent("frontend", "info", "component", `Shortened: ${shortLink}`);
   };
 
   return (
-    <div style={{ padding: "20px" }}>
-      <h2>Shorten Your URLs (Max 5)</h2>
-      {urlData.map((row, idx) => (
-        <div key={idx} style={{ marginBottom: "10px" }}>
+    <div className="shorten-wrapper">
+      <h2>URL Shortener (Max 5)</h2>
+
+      {urlInputs.map((item, i) => (
+        <div key={i} className="input-row">
           <input
             type="text"
-            placeholder="Enter long URL"
-            value={row.longUrl}
-            onChange={(e) => handleInputChange(idx, 'longUrl', e.target.value)}
-            style={{ width: "40%", marginRight: "5px" }}
+            placeholder="Enter full URL"
+            value={item.longUrl}
+            onChange={(e) => handleChange(i, 'longUrl', e.target.value)}
           />
           <input
             type="text"
-            placeholder="Custom shortcode (optional)"
-            value={row.shortcode}
-            onChange={(e) => handleInputChange(idx, 'shortcode', e.target.value)}
-            style={{ width: "20%", marginRight: "5px" }}
+            placeholder="Custom code (optional)"
+            value={item.shortcode}
+            onChange={(e) => handleChange(i, 'shortcode', e.target.value)}
           />
           <input
             type="number"
-            placeholder="Validity in mins"
-            value={row.validity}
-            onChange={(e) => handleInputChange(idx, 'validity', e.target.value)}
-            style={{ width: "10%", marginRight: "5px" }}
+            placeholder="Validity (mins)"
+            value={item.validity}
+            onChange={(e) => handleChange(i, 'validity', e.target.value)}
           />
-          <button onClick={() => handleShorten(idx)}>Shorten</button>
+          <button onClick={() => shortenURL(i)}>Shorten</button>
         </div>
       ))}
 
-      <h3>Shortened URLs</h3>
-      <ul>
-        {shortenedUrls.map((url, idx) => (
-          <li key={idx}>
-            <strong>{url.shortURL}</strong> → {url.longUrl}  
-            <br />
-            Expires at: {url.expiry}
-          </li>
-        ))}
-      </ul>
+      {shortenedList.length > 0 && (
+        <>
+          <h3>Shortened URLs</h3>
+          <ul>
+            {shortenedList.map((item, i) => (
+              <li key={i}>
+                <strong>{item.shortURL}</strong> → {item.longUrl}
+                <br />
+                Expires at: {item.expiry}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </div>
   );
 };

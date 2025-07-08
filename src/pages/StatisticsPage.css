@@ -1,0 +1,31 @@
+.stats-wrapper {
+    padding: 20px;
+    max-width: 800px;
+    margin: auto;
+    font-family: Arial, sans-serif;
+  }
+  
+  .stats-wrapper h2 {
+    color: #2d3748;
+    border-bottom: 2px solid #ccc;
+    padding-bottom: 5px;
+    margin-bottom: 20px;
+  }
+  
+  .stats-list {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .stats-list li {
+    background-color: #f9f9f9;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+  
+  .stats-list li strong {
+    color: #3182ce;
+  }
+  
